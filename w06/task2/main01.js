@@ -23,13 +23,18 @@ function main()
 
     var geometry = new THREE.TorusKnotGeometry( 1, 0.3, 100, 20 );
     var material = new THREE.ShaderMaterial({
-        vertexColors: THREE.VertexColors,
-        vertexShader: document.getElementById('shader.vert').text,
-        fragmentShader: document.getElementById('shader.frag').text,
+	vertexColors: THREE.VertexColors,
+	vertexShader: document.getElementById('gouraud.vert').text,
+	fragmentShader: document.getElementById('gouraud.frag').text,
+	uniforms: {
+	    light_position: { type: 'v3', value: light.position }
+	}
     });
 
     var torus_knot = new THREE.Mesh( geometry, material );
     scene.add( torus_knot );
+
+    
 
     loop();
 
