@@ -1,8 +1,12 @@
-function Isosurfaces( volume, isovalue )
+function Isosurfaces( volume, isovalue, cmap_select, shader, screen )
 {
+    
     var geometry = new THREE.Geometry();
-    var material = new THREE.MeshLambertMaterial();
+    //var material = new THREE.MeshLambertMaterial();
+    var light = new THREE.PointLight();
+    light.position.set( 5, 5, 5 );
 
+    
     var smin = volume.min_value;
     var smax = volume.max_value;
     isovalue = KVS.Clamp( isovalue, smin, smax );
@@ -61,7 +65,8 @@ function Isosurfaces( volume, isovalue )
     }
 
     geometry.computeVertexNormals();
-
+    console.log(cmap_select);
+    if(cmap_select == 0){
     var cmap = [];
     for ( var i = 0; i < 256; i++ )
     {
@@ -72,9 +77,60 @@ function Isosurfaces( volume, isovalue )
         var color = new THREE.Color( R, G, B );
         cmap.push( [ S, '0x' + color.getHexString() ] );
     }
+    }else if(cmap_select == 1){
+    var cmap = [];
+    for ( var i = 0; i < 256; i++ )
+    {
+        var S = i/255.0 ;
+        var R = 1;
+        var G = Math.max( Math.cos( S * Math.PI ), 0.0 );
+        var B = Math.max( Math.cos( S * Math.PI ), 0.0 );
+        var color = new THREE.Color( R, G, B );
+        cmap.push( [ S, '0x' + color.getHexString() ] );
+    }
+    }else if(cmap_select == 2){
+	var cmap = [];
+    for ( var i = 0; i < 256; i++ )
+    {
+        var S = i/255.0 ;
+        var R = Math.max( Math.cos( S * Math.PI ), 0.0 );
+        var G = Math.max( Math.cos( S * Math.PI ), 0.0 );
+        var B = Math.max( Math.cos( S * Math.PI ), 0.0 );
+        var color = new THREE.Color( R, G, B );
+        cmap.push( [ S, '0x' + color.getHexString() ] );
+    }
+    }else{
+  console.log("おい")
+    }
 
-
-    material.color = new THREE.Color().setHex( cmap[isovalue][1] );
+    
+    if(shader == 0){
+    var material = new THREE.ShaderMaterial({
+        vertexColors: THREE.VertexColors,
+        vertexShader: document.getElementById('Lambertian.vert').text,
+        fragmentShader: document.getElementById('Lambertian.frag').text,
+	uniforms: {
+	    light_position: {type: 'v3',value: light.position},
+	    camera_position: {type: 'v3',value: screen.camera.position},
+	    c: { type:'c', value: new THREE.Color().setHex( cmap[isovalue][1]) }
+	}  
+    });
+    }else if(shader == 1){
+     var material = new THREE.ShaderMaterial({
+         vertexColors: THREE.VertexColors,
+	 vertexColors: new THREE.Color().setHex( cmap[isovalue][1] ),
+        vertexShader: document.getElementById('BlinnPhong.vert').text,
+        fragmentShader: document.getElementById('BlinnPhong.frag').text,
+	uniforms: {
+	    light_position: {type: 'v3',value: light.position},
+	    camera_position: {type: 'v3',value: screen.camera.position},
+	    c: { type:'c', value: new THREE.Color().setHex( cmap[isovalue][1]) }
+	}
+     });
+    }
+					    
+					    
+   // material.color = new THREE.Color().setHex( cmap[isovalue][1] );
 
     return new THREE.Mesh( geometry, material );
 
